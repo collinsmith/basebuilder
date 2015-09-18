@@ -1,0 +1,147 @@
+[en]
+PLAYER_SWAP = You have been swapped by an admin
+ADMIN_SWAP = Player %s has been swapped to the %s team
+
+PLAYER_REVIVE = You have been revived by an admin
+ADMIN_REVIVE = Player %s has been revived by an admin
+
+START_MESSAGE = ---[ %s v%s ]---
+ROUND_MESSAGE = To move objects and build, look at something and hold your '+use' key
+ROUND_MESSAGE2 = To rotate objects press your 'reload' key
+
+CLASS_MENU_NAME = Select a class:
+COLOR_MENU_NAME = Select a color:
+
+WIN_ZOMBIE = Zombies Win!
+WIN_BUILDER	= Builders Win!
+
+BUILD_TIMER = Build Time
+PREP_TIMER = Prep Time
+
+PREP_ANNOUNCE = The survivors have been respawned to test their bases
+PREP_ANNOUNCE2 = The survivors have been respawned to test their bases
+RELEASE_ANNOUNCE = The zombies have been released!
+SWAP_ANNOUNCE = The teams have been swapped
+
+BUILD_CANNOT = You can't build now!
+BUILD_BAN = You have been banned from building
+BUILD_WAIT = You must wait another %.2f seconds to do this!
+
+ENT_MAX_DIST = Maximum distance reached!
+ENT_MIN_DIST = Minimum distance reached!
+ENT_PUSHING = pushing...
+ENT_PULLING = pulling...
+
+FAIL_ACCESS = You don't have access to this command
+FAIL_LOCK = You cannot lock/unlock blocks after the round has started
+FAIL_ALREADY_LOCKED = You cannot lock objects that don't belong to you
+FAIL_SPAWN = You are not allowed to respawn right now
+FAIL_SPAWN_BUILD = You're not allowed to build near the spawns!
+FAIL_TER_BUILD = You're not allowed to build in other people's territories!
+FAIL_TER_CLAIM = You've run out of time and lost your chance to claim this territory.
+FAIL_TER_MENU = You don't belong to a territory yet!
+FAIL_TER_MOVE = You are not allowed to move objects that have been claimed!
+FAIL_LOCK_NOT_OWNED = You cannot lock objects that you haven't claimed!
+FAIL_BUILD_IN_MAP = Please don't place objects in walls!
+FAIL_TARGET = Player %s could not be found or targetted
+
+COLOR_SELECT = You've chosen your color to be: %s
+COLOR_RANDOM = You're random color is: %s
+COLOR_CURRENT = You're current color is: %s
+COLOR_NONE = No one currently owns %s
+COLOR_OWNER = %s's color is %s
+COLOR_INVALID = There isn't a color named %s
+
+HUD_NOMOVER = This object hasn't been moved
+HUD_CURRENT = Current Mover
+HUD_LAST = Last Mover
+HUD_NONE = NONE
+HUD_LOCKER = LOCKED
+HUD_CLAIMED = CLAIMED
+HUD_HEALTH = Health
+BUILD_PARTERS = Build Partners
+
+CLASS_SELECTED = You've selected your class to be the %s zombie
+
+TER_CLAIMED = You've claimed this territory!
+TER_BEFRIENDED = You have been successfully added to this territory!
+TER_FULL = Sorry, but this territory is now full.
+TER_LEFT = You've left your territory.
+TER_NEWMAX = The game has been adjusted to a max of %d CTs per territory
+
+TER_CLAIM_LOST = An object of yours has been unclaimed [ %d / %d ]
+TER_CLAIM_NEW = You have successfully claimed this object [ %d / %d ]
+TER_CLAIM_MAX = You territory has claimed the maximum (%d) objects
+
+COMMANDS = Commands
+COMMAND_PREFIXES = Command Prefixes
+COMMAND_SAYALLONLY = This command only works in all-chat
+COMMAND_SAYTEAMONLY = This command only works in team-chat
+COMMAND_HUMANONLY = Only humans can use this command
+COMMAND_ZOMBIEONLY = Only zombies can use this command
+COMMAND_ALIVEONLY = You cannot use this command while dead
+COMMAND_DEADONLY = This command only works while you're dead
+COMMAND_BLOCKED = You are not allowed to use this command right now
+COMMAND_ADMINFLAGS = You don't have the requires access level for this command
+
+CLOCK_CREATED = Clock Created!
+CLOCK_DELETED = Clock Deleted!
+CLOCK_NEEDS_VERTICAL = You must place the clock on a vertical wall!
+CLOCK_MOVE_CLOSER = Move closer to the target to create the clock!
+
+weapon_p228 = P228 Compact
+weapon_scout = Schmidt Scout
+weapon_hegrenade = Hand Grenade
+weapon_xm1014 = XM1014 M4
+weapon_c4 = C-4 Plastic Explosives
+weapon_mac10 = Ingram MAC-10
+weapon_aug = Steyr AUG A1
+weapon_smokegrenade = Smoke Grenade
+weapon_elite = Dual Elite Berettas
+weapon_fiveseven = Fiveseven
+weapon_ump45 = UMP 45
+weapon_sg550 = SG-550 Auto-Sniper
+weapon_galil = IMI Galil
+weapon_famas = Famas
+weapon_usp = USP .45 ACP Tactical
+weapon_glock18 = Glock 18C
+weapon_awp = AWP Magnum Sniper
+weapon_mp5navy = MP5 Navy
+weapon_m249 = M249 Para Machinegun
+weapon_m3 = M3 Super 90
+weapon_m4a1 = M4A1 Carbine
+weapon_tmp = Schmidt TMP
+weapon_g3sg1 = G3SG1 Auto-Sniper
+weapon_flashbang = Flashbang
+weapon_deagle = Desert Eagle .50 AE
+weapon_sg552 = SG-552 Commando
+weapon_ak47 = AK-47 Kalashnikov
+weapon_knife = Combat Knife
+weapon_p90 = ES P90
+
+RED = Red
+RED_ORANGE = Red Orange
+ORANGE = Orange
+YELLOW_ORANGE = Yellow Orange
+PEACH = Peach
+YELLOW = Yellow
+LEMON_YELLOW = Lemon Yellow
+JUNGLE_GREEN = Jungle Green
+YELLOW_GREEN = Yellow Green
+GREEN = Green
+AQUAMARINE = Aquamarine
+BABY_BLUE = Baby Blue
+SKY_BLUE = Sky Blue
+BLUE = Blue
+VIOLET = Violet
+HOT_PINK = Hot Pink
+MAGENTA = Magenta
+MAHOGANY = Mahogany
+TAN = Tan
+LIGHT_BROWN = Light Brown
+BROWN = Brown
+GRAY = Gray
+BLACK = Black
+WHITE = White
+RAINBOW = Rainbow
+TEXTURED = Textured

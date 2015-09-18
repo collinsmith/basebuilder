@@ -1,0 +1,11 @@
+[en]
+RANK1		= Rank 1
+RANK2		= Rank 2
+RANK3		= Rank 3
+RANK4		= Rank 4
+RANK5		= Rank 5
+RANK6		= Rank 6
+RANK7		= Rank 7
+RANK8		= Rank 8
+RANK9		= Rank 9
+RANK10		= Rank 10
