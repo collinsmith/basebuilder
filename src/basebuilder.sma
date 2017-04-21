@@ -19,6 +19,8 @@
 #define EXTENSION_NAME "Base Builder"
 #define VERSION_STRING "1.0.0"
 
+#define CHECK_FOR_UPDATES
+
 static Logger: logger = Invalid_Logger;
 
 public plugin_natives() {
@@ -44,10 +46,10 @@ public zm_onInit() {
 public zm_onInitExtension() {
   new name[32];
   formatex(name, charsmax(name), "[%L] %s", LANG_SERVER, BB_NAME_SHORT, EXTENSION_NAME);
+  register_plugin(name, VERSION_STRING, "Tirant");
   
   new buildId[32];
   bb_getBuildId(buildId, charsmax(buildId));
-  register_plugin(name, buildId, "Tirant");
   zm_registerExtension(
       .name = name,
       .version = buildId,

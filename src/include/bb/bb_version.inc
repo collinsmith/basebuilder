@@ -7,9 +7,9 @@
 #include "include/zm/zm_debug.inc"
 
 /** The version code of BB. */
-#define BB_VERSION 1
+#define BB_VERSION 9
 /** The string representation for this version of BB. */
-#define BB_VERSION_STRING "1.0.0"
+#define BB_VERSION_STRING "9.0.0"
 
 /**
  * Returns the version code of BB.
