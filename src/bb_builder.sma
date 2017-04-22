@@ -1,10 +1,11 @@
 #include <amxmodx>
 #include <amxmisc>
+#include <cstrike>
 #include <fakemeta>
 #include <logger>
 #include <xs>
 
-#include "include/bb/bb_builder_const.inc"
+#include "include/bb/bb_builder_consts.inc"
 #include "include/bb/bb_builder_macros.inc"
 #include "include/bb/basebuilder.inc"
 
@@ -37,8 +38,6 @@
 
 const DEFAULT_FLAGS = 0;
 
-static Logger: logger = Invalid_Logger;
-
 static fwReturn = 0;
 static onBeforeGrabbed = INVALID_HANDLE;
 static onGrabbed = INVALID_HANDLE;
@@ -50,7 +49,7 @@ enum player_t {
   Float: EntOffset[3],
   OwnedEnt,
   PSet,
-}
+};
 
 static pState[MAX_PLAYERS + 1][player_t];
 
@@ -75,7 +74,8 @@ public plugin_natives() {
 }
 
 public zm_onInit() {
-  logger = bb_getLogger();
+  new Logger: oldLogger = LoggerSetThis(zm_getLogger());
+  LoggerDestroy(oldLogger);
 }
 
 public zm_onInitExtension() {
@@ -135,7 +135,6 @@ createCvars() {
   pcvar = create_cvar(name, "128.0", _, desc,
       .has_min = true, .min_val = 1.0, .has_max = true, .max_val = 512.0);
   bind_pcvar_float(pcvar, fPushPullRate);
-  hook_cvar_change(pcvar, "var_change_callback");
   
 #if defined ENABLE_ROTATION_YAW
   name = "bb_builder_rotationMode";
@@ -144,10 +143,6 @@ createCvars() {
       .has_min = true, .min_val = 0.0, .has_max = true, .max_val = 2.0);
   bind_pcvar_num(RotationMode, RotationMode);
 #endif
-}
-
-public cvar_change_callback(pcvar, const old_value[], const new_value[]) {
-  server_print("cvar %d changed %s=%s [%.2f]", pcvar, old_value, new_value, fPushPullRate);
 }
 
 prepareEntities() {
@@ -204,16 +199,16 @@ public client_disconnected(id) {
 zm_onBeforeGrabbed(id, entity) {
   if (onBeforeGrabbed == INVALID_HANDLE) {
 #if defined DEBUG_FORWARDS
-    LoggerLogDebug(logger, "Creating forward for zm_onBeforeGrabbed");
+    LoggerLogDebug("Creating forward for zm_onBeforeGrabbed");
 #endif
     onBeforeGrabbed = CreateMultiForward("zm_onBeforeGrabbed", ET_STOP, FP_CELL, FP_CELL);
 #if defined DEBUG_FORWARDS
-    LoggerLogDebug(logger, "onBeforeGrabbed = %d", onBeforeGrabbed);
+    LoggerLogDebug("onBeforeGrabbed = %d", onBeforeGrabbed);
 #endif
   }
 
 #if defined DEBUG_FORWARDS
-  LoggerLogDebug(logger, "Forwarding zm_onBeforeGrabbed(%d, entity=%d) for %N", id, entity, id);
+  LoggerLogDebug("Forwarding zm_onBeforeGrabbed(%d, entity=%d) for %N", id, entity, id);
 #endif
   ExecuteForward(onBeforeGrabbed, fwReturn, id, entity);
   return fwReturn;
@@ -222,16 +217,16 @@ zm_onBeforeGrabbed(id, entity) {
 zm_onGrabbed(id, entity) {
   if (onGrabbed == INVALID_HANDLE) {
 #if defined DEBUG_FORWARDS
-    LoggerLogDebug(logger, "Creating forward for zm_onGrabbed");
+    LoggerLogDebug("Creating forward for zm_onGrabbed");
 #endif
     onGrabbed = CreateMultiForward("zm_onGrabbed", ET_CONTINUE, FP_CELL, FP_CELL);
 #if defined DEBUG_FORWARDS
-    LoggerLogDebug(logger, "onGrabbed = %d", onGrabbed);
+    LoggerLogDebug("onGrabbed = %d", onGrabbed);
 #endif
   }
 
 #if defined DEBUG_FORWARDS
-  LoggerLogDebug(logger, "Forwarding zm_onGrabbed(%d, entity=%d) for %N", id, entity, id);
+  LoggerLogDebug("Forwarding zm_onGrabbed(%d, entity=%d) for %N", id, entity, id);
 #endif
   ExecuteForward(onGrabbed, fwReturn, id, entity);
 }
@@ -239,22 +234,22 @@ zm_onGrabbed(id, entity) {
 zm_onDropped(id, entity) {
   if (onDropped == INVALID_HANDLE) {
 #if defined DEBUG_FORWARDS
-    LoggerLogDebug(logger, "Creating forward for zm_onDropped");
+    LoggerLogDebug("Creating forward for zm_onDropped");
 #endif
     onDropped = CreateMultiForward("zm_onDropped", ET_CONTINUE, FP_CELL, FP_CELL);
 #if defined DEBUG_FORWARDS
-    LoggerLogDebug(logger, "onDropped = %d", onDropped);
+    LoggerLogDebug("onDropped = %d", onDropped);
 #endif
   }
 
 #if defined DEBUG_FORWARDS
-  LoggerLogDebug(logger, "Forwarding zm_onDropped(%d, entity=%d) for %N", id, entity, id);
+  LoggerLogDebug("Forwarding zm_onDropped(%d, entity=%d) for %N", id, entity, id);
 #endif
   ExecuteForward(onDropped, fwReturn, id, entity);
 }
 
 resetEntities() {
-  for (new entity; (entity = find_ent_by_class(entity, BB_OBJECT)) != 0;) {
+  for (new entity; (entity = cs_find_ent_by_class(entity, BB_OBJECT)) != 0;) {
     reset(entity);
   }
 }
@@ -288,12 +283,12 @@ grab(id, entity, &Float: distance = 0.0) {
   }
 
 #if defined DEBUG_GRABBING
-  LoggerLogDebug(logger, "%N initiating grab on %d", id, entity);
+  LoggerLogDebug("%N initiating grab on %d", id, entity);
 #endif
   new const ownedEnt = pState[id][OwnedEnt];
   if (ownedEnt == entity) {
 #if defined DEBUG_GRABBING
-  LoggerLogDebug(logger, "%N has already grabbed %d", id, entity);
+  LoggerLogDebug("%N has already grabbed %d", id, entity);
 #endif
     return;
   } else if (ownedEnt) {
@@ -304,7 +299,7 @@ grab(id, entity, &Float: distance = 0.0) {
   new adminFlags = get_user_flags(id);
   if (zm_isUserZombie(id) && !(adminFlags & FLAGS_IGNORE_TEAM)) {
 #if defined DEBUG_GRABBING
-    LoggerLogDebug(logger, "%N is a zombie without grab override privileges", id);
+    LoggerLogDebug("%N is a zombie without grab override privileges", id);
 #endif
     return;
   /*} else if (bb_getGameState() != BB_STATE_BUILDING && !(adminFlags & FLAGS_IGNORE_STATE)) {
@@ -315,7 +310,7 @@ grab(id, entity, &Float: distance = 0.0) {
   fwReturn = zm_onBeforeGrabbed(id, entity);
   if (fwReturn == PLUGIN_HANDLED) {
 #if defined DEBUG_GRABBING
-    LoggerLogDebug(logger, "%N's grab was blocked by another extension", id);
+    LoggerLogDebug("%N's grab was blocked by another extension", id);
 #endif
     return;
   }
@@ -328,7 +323,7 @@ grab(id, entity, &Float: distance = 0.0) {
   if (distance < fEntResetDist) {
     distance = fEntResetDist;
 #if defined DEBUG_GRABBING
-    LoggerLogDebug(logger, "%N's entity distance reset to %.0f", id, distance);
+    LoggerLogDebug("%N's entity distance reset to %.0f", id, distance);
 #endif
   }
   
@@ -348,7 +343,7 @@ bool: drop(id) {
   }
 
 #if defined DEBUG_GRABBING
-  LoggerLogDebug(logger, "Forcing %N to drop %d", id, entity);
+  LoggerLogDebug("Forcing %N to drop %d", id, entity);
 #endif
   
   UnmovingEnt(entity);
@@ -371,7 +366,7 @@ public onCmdStart(id, uc, randseet) {
   new const bool: isToggleGrabEnabled = (pFlags[id] & PFLAG_TOGGLE_GRAB) == PFLAG_TOGGLE_GRAB;
   if ((buttons & IN_USE) && !(oldbuttons & IN_USE)) {
 #if defined DEBUG_CMDSTART
-    LoggerLogDebug(logger, "%N pressed IN_USE", id);
+    LoggerLogDebug("%N pressed IN_USE", id);
 #endif
     if (isToggleGrabEnabled || !alreadyGrabbed) {
       new entity, body, Float: distance;
@@ -383,7 +378,7 @@ public onCmdStart(id, uc, randseet) {
   } else if ((oldbuttons & IN_USE) && !(buttons & IN_USE)
       && alreadyGrabbed && !isToggleGrabEnabled) {
 #if defined DEBUG_CMDSTART
-    LoggerLogDebug(logger, "%N released IN_USE", id);
+    LoggerLogDebug("%N released IN_USE", id);
 #endif
     drop(id);
     return FMRES_IGNORED;

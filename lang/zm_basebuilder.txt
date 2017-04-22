@@ -6,3 +6,16 @@ ZM_TEAM_UNASSIGNED=UNASSIGNED
 ZM_TEAM_ZOMBIE=ZOMBIE
 ZM_TEAM_HUMAN=BUILDER
 ZM_TEAM_SPECTATOR=SPECTATOR
+
+BARRIER_NOT_FOUND="Map not supported. Barrier entity could not be located."
+
+bb_builder_minGrabDistance=Minimum distance you can pull an object
+bb_builder_maxGrabDistance=Maximum distance you can push an object
+bb_builder_grabResetDistance=The distance to set a block to if grabbed too close
+bb_builder_pushPullRate=How slow/fast an object can be pushed or pulled in units/sec
+
+PUSHING=pushing...
+PULLING=pulling...
+
+PUSHED_MAX_DIST=Maximum distance reached!
+PUSHED_MIN_DIST=Minimum distance reached!
