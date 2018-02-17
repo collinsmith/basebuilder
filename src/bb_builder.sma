@@ -90,6 +90,7 @@ public plugin_natives() {
   register_native("bb_drop", "native_drop", 0);
   register_native("bb_isInPlayerPVS", "native_isInPlayerPVS", 0);
   register_native("bb_setBlockedReason", "native_setBlockedReason", 0);
+  register_native("bb_getGrabbedObject", "native_getGrabbedObject", 0);
 }
 
 public zm_onInit() {
@@ -464,7 +465,7 @@ bool: drop(id) {
   return true;
 }
 
-public onCmdStart(id, uc, randseet) {
+public onCmdStart(id, uc, randseed) {
   if (!is_user_alive(id)) {
     return FMRES_IGNORED;
   }
@@ -493,7 +494,6 @@ public onCmdStart(id, uc, randseet) {
     return FMRES_IGNORED;
   }
 
-  // TODO: forward event for grab?
   return FMRES_IGNORED;
 }
 
@@ -693,4 +693,21 @@ public native_setBlockedReason(plugin, numParams) {
 #if defined DEBUG_BLOCKED
   logd("blockedReason=%s", blockedReason);
 #endif
+}
+
+//native bb_getGrabbedObject(const id);
+public native_getGrabbedObject(plugin, numParams) {
+#if defined DEBUG_NATIVES
+  if (!numParamsEqual(1, numParams)) {
+    return 0;
+  }
+#endif
+
+  new const id = get_param(1);
+  if (!isValidId(id)) {
+    ThrowIllegalArgumentException("Invalid player id specified: %d", id);
+    return 0;
+  }
+
+  return pState[id][OwnedEnt];
 }

@@ -327,7 +327,7 @@ public onTraceLine(Float: start[3], Float: end[3], conditions, id, trace) {
 #endif
   }
 
-  static ent, curMover, lastMover, szCurMover[32], szLastMover[32];
+  static ent, claimer, curMover, lastMover, szCurMover[32], szLastMover[32];
   ent = get_tr2(trace, TR_pHit);
   if (!is_valid_ent(ent)) {
     ClearSyncHud(id, tracelineSync);
@@ -338,14 +338,16 @@ public onTraceLine(Float: start[3], Float: end[3], conditions, id, trace) {
   len = 0;
   if (GetMoveType(ent) != UNMOVABLE) {
     set_hudmessage(0, 50, 255, -1.0, 0.60, 0, 0.0, 3.0, 0.0, 0.5);
+    claimer = GetBlockClaimer(ent);
     curMover = GetEntMover(ent);
     lastMover = GetLastMover(ent);
-    if (GetBlockClaimer(ent)) {
-      len += formatex(szFormattedHud[len], 127-len, "%L", id, "HUD_CLAIMED");
+    if (claimer) {
+      get_user_name(claimer, szCurMover, 31);
+      len += formatex(szFormattedHud[len], 127-len, "%l", "CLAIMED_BY", szCurMover);
     }	
 
     if (IsBlockLocked(ent)) {
-      len += formatex(szFormattedHud[len], 127-len, " & %L", id, "HUD_LOCKER");
+      len += formatex(szFormattedHud[len], 127-len, " & %l", "LOCKED");
     }
 
     len += formatex(szFormattedHud[len], 127-len, "\n");

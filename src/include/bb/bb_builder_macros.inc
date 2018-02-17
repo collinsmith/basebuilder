@@ -8,7 +8,7 @@
 #include "include/bb/bb_builder_consts.inc"
 
 #define ClaimBlock(%1,%2)   entity_set_int(%1, EV_INT_iuser1, %2)
-#define UnclaimBlock(%1)    entity_set_int(%1, EV_INT_iuser1, null)
+#define UnclaimBlock(%1)    entity_set_int(%1, EV_INT_iuser1, 0)
 #define GetBlockClaimer(%1) entity_get_int(%1, EV_INT_iuser1)
 
 #define SetEntMover(%1,%2)  entity_set_int(%1, EV_INT_iuser2, %2)

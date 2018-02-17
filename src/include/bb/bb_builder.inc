@@ -20,3 +20,8 @@ native bb_resetAll();
 native bool: bb_drop(const id);
 native bool: bb_isInPlayerPVS(const id, const entity);
 native bb_setBlockedReason(const reason[]);
+native bb_getGrabbedObject(const id);
+
+stock bool: bb_isUserGrabbing(const id) {
+  return bb_getGrabbedObject(id) > 0;
+}

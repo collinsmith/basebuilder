@@ -34,6 +34,7 @@ PULLED_MIN_DIST=Minimum distance reached!
 CANNOT_BUILD_IN_MAP=Please don't place objects in walls!
 CANNOT_BUILD_IN_SPAWN=Please don't place objects near spawns!
 CANNOT_BUILD_NOW=You can only move objects during the Build Phase!
+CANNOT_BUILD_OBJECT_OWNED=Cannot move objects claimed by other players!
 CANNOT_PAUSE=Timer cannot be paused right now!
 CANNOT_FORCE_PREPARATION=Cannot skip to preparation phase right now!
 CANNOT_FORCE_RELEASE=Zombies cannot be released right now!
@@ -62,6 +63,8 @@ PrepPhase=Preparation Phase
 Released=Builders Win in
 RoundEnding=Round Ending
 
+CLAIMED_BY=Claimed by: %s
+LOCKED=LOCKED
 CURRENT_MOVER=Current Mover: %s
 LAST_MOVER=Last Mover: %s
 HASNT_BEEN_MOVED=This object hasn't been moved yet
