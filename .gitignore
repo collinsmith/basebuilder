@@ -1,2 +1,5 @@
 /build/
 /lib/build/
+src/include/reapi*
+src/include/cssdk_const.inc
+src/include/hlsdk_const.inc

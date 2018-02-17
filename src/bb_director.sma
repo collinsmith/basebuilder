@@ -13,6 +13,7 @@
 #include "include/commands/commands.inc"
 
 #include "include/zm/zm_classes.inc"
+#include "include/zm/zm_class_menu.inc"
 #include "include/zm/zm_teams.inc"
 
 #include "include/bb/basebuilder.inc"
@@ -63,7 +64,8 @@ static bool: paused = false;
 static respawnTimer = 0;
 static respawnTime[MAX_PLAYERS + 1] = { 0, ... };
 
-static ZM_Team: pActualTeam[MAX_PLAYERS + 1];
+static ZM_Team: pActualTeam[MAX_PLAYERS + 1] = { ZM_TEAM_UNASSIGNED, ... };
+static bool: pApplyImmediate[MAX_PLAYERS + 1] = { false, ... };
 
 public zm_onInit() {
   LoadLogger(bb_getPluginId());
@@ -315,6 +317,7 @@ public zm_onKilled(const victim, const killer) {
 
 public client_disconnected(id) {
   pActualTeam[id] = ZM_TEAM_UNASSIGNED;
+  pApplyImmediate[id] = false;
   cancelRespawn(id);
 }
 
@@ -425,6 +428,17 @@ public zm_onInfected(const id, const infector) {
   new const Class: defaultClass = zm_findClass("@string/ZM_CLASS_CLASSIC");
   zm_setUserClass(id, defaultClass, true);
   logd("%N class auto set to %d", id, defaultClass);
+}
+
+public zm_onAfterApply(const id, const bool: first) {
+  if (first) {
+    pApplyImmediate[id] = true;
+    zm_showClassMenu(id, true);
+  }
+}
+
+public zm_onClassSelected(const id, const Class: class, const name[]) {
+  zm_setUserClass(id, class, pApplyImmediate[id]);
 }
 
 public zm_onCured(const id, const curor) {
