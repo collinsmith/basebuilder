@@ -3,7 +3,7 @@
 #include "include/package_manager.inc"
 
 #include "include/stocks/path_stocks.inc"
-#include "include/stocks/string_stocks.inc"
+#include "include/stocks/string_utils.inc"
 
 #include "include/bb/basebuilder.inc"
 
@@ -13,8 +13,7 @@
 static const BB_MANIFEST_URL[] = "https://raw.githubusercontent.com/collinsmith/basebuilder/master/manifest";
 
 public zm_onInit() {
-  new Logger: oldLogger = LoggerSetThis(zm_getLogger());
-  LoggerDestroy(oldLogger);
+  LoadLogger(bb_getPluginId());
 }
 
 public zm_onInitExtension() {
@@ -29,7 +28,7 @@ public zm_onInitExtension() {
       .version = buildId,
       .desc = "Manages BB packages and automates installing, upgrading and configuring");
 
-  LoggerLogInfo("Checking for updates...");
+  logi("Checking for updates...");
   pkg_processManifest(BB_MANIFEST_URL);
 }
 

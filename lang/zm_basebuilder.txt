@@ -9,6 +9,17 @@ ZM_TEAM_SPECTATOR=SPECTATOR
 
 BARRIER_NOT_FOUND="Map not supported. Barrier entity could not be located."
 
+bb_barrierColor_r=Color of the barrier (red channel)
+bb_barrierColor_g=Color of the barrier (green channel)
+bb_barrierColor_b=Color of the barrier (blue channel)
+bb_barrierColor_a=Color of the barrier (alpha channel)
+bb_spawnRegenRate=Regeneration rate for players in spawns
+
+bb_buildTime=Length of the build time (in seconds)
+bb_prepTime=Length of the preparation time (in seconds)
+bb_surviveTime=Amount of time players must survive
+bb_zombieRespawnTime=The delay for a zombie to respawn
+
 bb_builder_minGrabDistance=Minimum distance you can pull an object
 bb_builder_maxGrabDistance=Maximum distance you can push an object
 bb_builder_grabResetDistance=The distance to set a block to if grabbed too close
@@ -18,4 +29,39 @@ PUSHING=pushing...
 PULLING=pulling...
 
 PUSHED_MAX_DIST=Maximum distance reached!
-PUSHED_MIN_DIST=Minimum distance reached!
+PULLED_MIN_DIST=Minimum distance reached!
+
+CANNOT_BUILD_IN_MAP=Please don't place objects in walls!
+CANNOT_BUILD_IN_SPAWN=Please don't place objects near spawns!
+CANNOT_BUILD_NOW=You can only move objects during the Build Phase!
+CANNOT_PAUSE=Timer cannot be paused right now!
+CANNOT_FORCE_PREPARATION=Cannot skip to preparation phase right now!
+CANNOT_FORCE_RELEASE=Zombies cannot be released right now!
+
+TIMER_PAUSED=The timer has been paused
+TIMER_RESUMED=The timer has resumed
+
+PREPARATION_BY_CMD=The preparation phase has been started by an admin
+RELEASED_BY_CMD=The zombies have been released by an admin
+RESET_BY_CMD=The objects have been reset by an admin
+
+RESPAWN_IN_X=You will respawn in %s seconds
+
+HUD_HEALTH=Health: %d
+HUD_TIMER=%L^n%s
+
+PREP_ANNOUNCE = The survivors have been respawned to test their bases
+PREP_ANNOUNCE2 = The survivors have been respawned to test their bases
+RELEASE_ANNOUNCE = The zombies have been released!
+SWAP_TEAMS = The teams have been swapped
+
+Invalid_GameState=Invalid_GameState
+RoundStarting=Freeze Time
+BuildPhase=Build Phase
+PrepPhase=Preparation Phase
+Released=Builders Win in
+RoundEnding=Round Ending
+
+CURRENT_MOVER=Current Mover: %s
+LAST_MOVER=Last Mover: %s
+HASNT_BEEN_MOVED=This object hasn't been moved yet

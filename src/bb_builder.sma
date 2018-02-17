@@ -1,3 +1,5 @@
+#define _bb_builder_included
+
 #include <amxmodx>
 #include <amxmisc>
 #include <cstrike>
@@ -5,20 +7,26 @@
 #include <logger>
 #include <xs>
 
+#include "include/stocks/param_stocks.inc"
+
+#include "include/zm/zm_teams.inc"
+
 #include "include/bb/bb_builder_consts.inc"
 #include "include/bb/bb_builder_macros.inc"
 #include "include/bb/basebuilder.inc"
 
-#include "include/zm/zm_teams.inc"
-
 #if defined ZM_COMPILE_FOR_DEBUG
-  #define DEBUG_GRABBING
+  //#define DEBUG_GRABBING
   //#define DEBUG_CMDSTART
-  #define DEBUG_PUSHPULL
+  //#define DEBUG_PUSHPULL
+  #define DEBUG_RESET
+  //#define DEBUG_BLOCKED
 #else
   //#define DEBUG_GRABBING
   //#define DEBUG_CMDSTART
   //#define DEBUG_PUSHPULL
+  //#define DEBUG_RESET
+  //#define DEBUG_BLOCKED
 #endif
 
 #define EXTENSION_NAME "Builder"
@@ -31,8 +39,6 @@
     hate this. Disabled as it does not work okay (collisions are bad) */
 //#define ENABLE_ROTATION_ROLL
 
-#define FLAGS_IGNORE_TEAM  ADMIN_RCON
-#define FLAGS_IGNORE_STATE ADMIN_BAN
 
 #define PFLAG_TOGGLE_GRAB 0x00000001
 
@@ -40,8 +46,13 @@ const DEFAULT_FLAGS = 0;
 
 static fwReturn = 0;
 static onBeforeGrabbed = INVALID_HANDLE;
+static onGrabBlocked = INVALID_HANDLE;
 static onGrabbed = INVALID_HANDLE;
 static onDropped = INVALID_HANDLE;
+static onReset = INVALID_HANDLE;
+static onResetAll = INVALID_HANDLE;
+static onPush = INVALID_HANDLE;
+static onPull = INVALID_HANDLE;
 
 enum player_t {
   Float: BuildDelay,
@@ -69,13 +80,20 @@ static Float: fOrigin1[3];
 static Float: fOrigin2[3];
 static Float: fOrigin3[3];
 
+static blockedReason[256];
+
 public plugin_natives() {
   register_library("bb_builder");
+
+  register_native("bb_resetAll", "native_resetAll", 0);
+  register_native("bb_reset", "native_reset", 0);
+  register_native("bb_drop", "native_drop", 0);
+  register_native("bb_isInPlayerPVS", "native_isInPlayerPVS", 0);
+  register_native("bb_setBlockedReason", "native_setBlockedReason", 0);
 }
 
 public zm_onInit() {
-  new Logger: oldLogger = LoggerSetThis(zm_getLogger());
-  LoggerDestroy(oldLogger);
+  LoadLogger(bb_getPluginId());
 }
 
 public zm_onInitExtension() {
@@ -94,59 +112,49 @@ public zm_onInitExtension() {
 
   register_forward(FM_CmdStart, "onCmdStart");
   register_forward(FM_PlayerPreThink, "onPlayerPreThink");
-
-  register_event("HLTV", "eventRoundStart", "a", "1=0", "2=0");
+  register_forward(FM_AddToFullPack, "onAddToFullPack", 1);
 
   prepareEntities();
-}
-
-public eventRoundStart() {
-  resetEntities();
 }
 
 stock getBuildId(buildId[], len) {
   return formatex(buildId, len, "%s [%s]", VERSION_STRING, __DATE__);
 }
 
+#define CREATE_CVAR(%1,%2,%3,%4,%5) \
+  name = %1;\
+  LookupLangKey(desc, charsmax(desc), name, lang);\
+  pcvar = create_cvar(name, #%4, _, desc,\
+      .has_min = true, .min_val = %2, .has_max = true, .max_val = %3);\
+  bind_pcvar_num(pcvar, %5);
+
+#define CREATE_CVAR_F(%1,%2,%3,%4,%5) \
+  name = %1;\
+  LookupLangKey(desc, charsmax(desc), name, lang);\
+  pcvar = create_cvar(name, #%4, _, desc,\
+      .has_min = true, .min_val = %2, .has_max = true, .max_val = %3);\
+  bind_pcvar_float(pcvar, %5);
+
 createCvars() {
-  new lang_server = LANG_SERVER;
+  new lang = LANG_SERVER;
   new pcvar, name[32], desc[256];
-  
-  name = "bb_builder_minGrabDistance";
-  LookupLangKey(desc, charsmax(desc), name, lang_server);
-  pcvar = create_cvar(name, "32.0", _, desc,
-      .has_min = true, .min_val = 16.0, .has_max = true, .max_val = 256.0);
-  bind_pcvar_float(pcvar, fMinEntDist);
-  
-  name = "bb_builder_maxGrabDistance";
-  LookupLangKey(desc, charsmax(desc), name, lang_server);
-  pcvar = create_cvar(name, "1024.0", _, desc,
-      .has_min = true, .min_val = 256.0, .has_max = true, .max_val = 2048.0);
-  bind_pcvar_float(pcvar, fMaxEntDist);
-  
-  name = "bb_builder_grabResetDistance";
-  LookupLangKey(desc, charsmax(desc), name, lang_server);
-  pcvar = create_cvar(name, "64.0", _, desc,
-      .has_min = true, .min_val = 16.0, .has_max = true, .max_val = 64.0);
-  bind_pcvar_float(pcvar, fEntResetDist);
-  
-  name = "bb_builder_pushPullRate";
-  LookupLangKey(desc, charsmax(desc), name, lang_server);
-  pcvar = create_cvar(name, "128.0", _, desc,
-      .has_min = true, .min_val = 1.0, .has_max = true, .max_val = 512.0);
-  bind_pcvar_float(pcvar, fPushPullRate);
-  
+  CREATE_CVAR_F("bb_builder_minGrabDistance",16.0,256.0,32.0,fMinEntDist)
+  CREATE_CVAR_F("bb_builder_maxGrabDistance",256.0,2048.0,1024.0,fMaxEntDist)
+  CREATE_CVAR_F("bb_builder_grabResetDistance",0.0,64.0,16.0,fEntResetDist)
+  CREATE_CVAR_F("bb_builder_pushPullRate",1.0,512.0,256.0,fPushPullRate)
 #if defined ENABLE_ROTATION_YAW
-  name = "bb_builder_rotationMode";
-  LookupLangKey(desc, charsmax(desc), name, lang_server);
-  RotationMode = create_cvar(name, "2", _, desc,
-      .has_min = true, .min_val = 0.0, .has_max = true, .max_val = 2.0);
-  bind_pcvar_num(RotationMode, RotationMode);
+  CREATE_CVAR("bb_builder_rotationMode",0.0,2.0,2,RotationMode)
 #endif
 }
 
+#undef CREATE_CVAR
+#undef CREATE_CVAR_F
+
 prepareEntities() {
-  new target[16], class[10];
+  new bb_object_[16];
+  new const bb_object_len = copy(bb_object_, charsmax(bb_object_), BB_OBJECT_RAW);
+
+  new target[16], class[10], len;
   new const count = entity_count();
   for (new entity = MaxClients + 1; entity < count; entity++) {
     if (!is_valid_ent(entity)) {
@@ -156,20 +164,33 @@ prepareEntities() {
     entity_get_string(entity, EV_SZ_classname, class, charsmax(class));
     if (!equal(class, "func_wall")) {
       continue;
-    }
-
-    entity_get_string(entity, EV_SZ_targetname, target, charsmax(target));
-    if (!equal(target, BB_OBJECT_RAW, 10)) {
-      SetMoveType(entity, UNMOVABLE);
+    } else if (equal(class, BB_IGNORE[0])) {
       continue;
     }
 
-    SetMoveType(entity, read_flags(target[10]));
+    entity_get_string(entity, EV_SZ_targetname, target, charsmax(target));
+    // This is not compatible with all old maps
+    //if (!equal(target, BB_OBJECT_RAW, 10)) {
+    //  server_print("%d target=%s", entity, target);
+    //  SetMoveType(entity, UNMOVABLE);
+    //  continue;
+    //}
+
+    if (equal(target, BB_OBJECT_RAW, 10)) {
+      SetMoveType(entity, read_flags(target[10]));
+    } else {
+      // TODO: Make sure this change is compatible with old maps
+      SetMoveType(entity, MOVABLE);
+      len = bb_object_len + get_flags(GetMoveType(entity), bb_object_[bb_object_len], charsmax(bb_object_)-bb_object_len);
+      bb_object_[len] = EOS;
+      entity_set_string(entity, EV_SZ_targetname, bb_object_);
+    }
+
     if (GetMoveType(entity) == UNMOVABLE) {
       continue;
     }
 
-    entity_set_string(entity, EV_SZ_classname, BB_OBJECT);
+    cs_set_ent_class(entity, BB_OBJECT);
 
     entity_get_vector(entity, EV_VEC_origin, fOrigin3);
     EntSetOffset(entity, fOrigin3);
@@ -196,62 +217,159 @@ public client_disconnected(id) {
   pFlags[id] = 0;
 }
 
-zm_onBeforeGrabbed(id, entity) {
+bb_onBeforeGrabbed(id, entity) {
   if (onBeforeGrabbed == INVALID_HANDLE) {
 #if defined DEBUG_FORWARDS
-    LoggerLogDebug("Creating forward for zm_onBeforeGrabbed");
+    logd("Creating forward for bb_onBeforeGrabbed");
 #endif
-    onBeforeGrabbed = CreateMultiForward("zm_onBeforeGrabbed", ET_STOP, FP_CELL, FP_CELL);
+    onBeforeGrabbed = CreateMultiForward("bb_onBeforeGrabbed", ET_STOP, FP_CELL, FP_CELL);
 #if defined DEBUG_FORWARDS
-    LoggerLogDebug("onBeforeGrabbed = %d", onBeforeGrabbed);
+    logd("onBeforeGrabbed = %d", onBeforeGrabbed);
 #endif
   }
 
 #if defined DEBUG_FORWARDS
-  LoggerLogDebug("Forwarding zm_onBeforeGrabbed(%d, entity=%d) for %N", id, entity, id);
+  logd("Forwarding bb_onBeforeGrabbed(%d, entity=%d) for %N", id, entity, id);
 #endif
+  blockedReason[0] = EOS;
   ExecuteForward(onBeforeGrabbed, fwReturn, id, entity);
   return fwReturn;
 }
 
-zm_onGrabbed(id, entity) {
-  if (onGrabbed == INVALID_HANDLE) {
+bb_onGrabBlocked(id, entity, reason[]) {
+  if (onGrabBlocked == INVALID_HANDLE) {
 #if defined DEBUG_FORWARDS
-    LoggerLogDebug("Creating forward for zm_onGrabbed");
+    logd("Creating forward for bb_onGrabBlocked");
 #endif
-    onGrabbed = CreateMultiForward("zm_onGrabbed", ET_CONTINUE, FP_CELL, FP_CELL);
+    onGrabBlocked = CreateMultiForward("bb_onGrabBlocked", ET_CONTINUE, FP_CELL, FP_CELL, FP_STRING);
 #if defined DEBUG_FORWARDS
-    LoggerLogDebug("onGrabbed = %d", onGrabbed);
+    logd("onGrabBlocked = %d", onGrabBlocked);
 #endif
   }
 
 #if defined DEBUG_FORWARDS
-  LoggerLogDebug("Forwarding zm_onGrabbed(%d, entity=%d) for %N", id, entity, id);
+  logd("Forwarding bb_onGrabBlocked(%d, entity=%d, reason=\"%s\") for %N", id, entity, reason, id);
+#endif
+  ExecuteForward(onGrabBlocked, fwReturn, id, entity, reason);
+}
+
+bb_onGrabbed(id, entity) {
+  if (onGrabbed == INVALID_HANDLE) {
+#if defined DEBUG_FORWARDS
+    logd("Creating forward for bb_onGrabbed");
+#endif
+    onGrabbed = CreateMultiForward("bb_onGrabbed", ET_CONTINUE, FP_CELL, FP_CELL);
+#if defined DEBUG_FORWARDS
+    logd("onGrabbed = %d", onGrabbed);
+#endif
+  }
+
+#if defined DEBUG_FORWARDS
+  logd("Forwarding bb_onGrabbed(%d, entity=%d) for %N", id, entity, id);
 #endif
   ExecuteForward(onGrabbed, fwReturn, id, entity);
 }
 
-zm_onDropped(id, entity) {
+bb_onDropped(id, entity) {
   if (onDropped == INVALID_HANDLE) {
 #if defined DEBUG_FORWARDS
-    LoggerLogDebug("Creating forward for zm_onDropped");
+    logd("Creating forward for bb_onDropped");
 #endif
-    onDropped = CreateMultiForward("zm_onDropped", ET_CONTINUE, FP_CELL, FP_CELL);
+    onDropped = CreateMultiForward("bb_onDropped", ET_CONTINUE, FP_CELL, FP_CELL);
 #if defined DEBUG_FORWARDS
-    LoggerLogDebug("onDropped = %d", onDropped);
+    logd("onDropped = %d", onDropped);
 #endif
   }
 
 #if defined DEBUG_FORWARDS
-  LoggerLogDebug("Forwarding zm_onDropped(%d, entity=%d) for %N", id, entity, id);
+  logd("Forwarding bb_onDropped(%d, entity=%d) for %N", id, entity, id);
 #endif
   ExecuteForward(onDropped, fwReturn, id, entity);
 }
 
+bb_onReset(entity) {
+  if (onReset == INVALID_HANDLE) {
+#if defined DEBUG_FORWARDS
+    logd("Creating forward for bb_onReset");
+#endif
+    onReset = CreateMultiForward("bb_onReset", ET_CONTINUE, FP_CELL);
+#if defined DEBUG_FORWARDS
+    logd("onReset = %d", onReset);
+#endif
+  }
+
+#if defined DEBUG_FORWARDS
+  logd("Forwarding bb_onReset(entity=%d)", entity);
+#endif
+  ExecuteForward(onReset, fwReturn, entity);
+}
+
+bb_onResetAll() {
+  if (onResetAll == INVALID_HANDLE) {
+#if defined DEBUG_FORWARDS
+    logd("Creating forward for bb_onResetAll");
+#endif
+    onResetAll = CreateMultiForward("bb_onResetAll", ET_CONTINUE);
+#if defined DEBUG_FORWARDS
+    logd("onResetAll = %d", onResetAll);
+#endif
+  }
+
+#if defined DEBUG_FORWARDS
+  logd("Forwarding bb_onResetAll()");
+#endif
+  ExecuteForward(onResetAll, fwReturn);
+}
+
+bb_onPush(id, entity, bool: maxDist) {
+  if (onPush == INVALID_HANDLE) {
+#if defined DEBUG_FORWARDS
+    logd("Creating forward for bb_onPush");
+#endif
+    onPush = CreateMultiForward(
+        "bb_onPush", ET_CONTINUE,
+        FP_CELL, FP_CELL, FP_CELL);
+#if defined DEBUG_FORWARDS
+    logd("onPush = %d", onPush);
+#endif
+  }
+
+#if defined DEBUG_FORWARDS
+  logd("Forwarding bb_onPush(%d, entity=%d, maxDist=%s) for %N",
+      id, entity, maxDist ? TRUE : FALSE, id);
+#endif
+  ExecuteForward(onPush, fwReturn, id, entity, maxDist);
+}
+
+bb_onPull(id, entity, bool: minDist) {
+  if (onPull == INVALID_HANDLE) {
+#if defined DEBUG_FORWARDS
+    logd("Creating forward for bb_onPull");
+#endif
+    onPull = CreateMultiForward(
+        "bb_onPull", ET_CONTINUE,
+        FP_CELL, FP_CELL, FP_CELL);
+#if defined DEBUG_FORWARDS
+    logd("onPull = %d", onPull);
+#endif
+  }
+
+#if defined DEBUG_FORWARDS
+  logd("Forwarding bb_onPull(%d, entity=%d, minDist=%s) for %N",
+      id, entity, maxDist ? TRUE : FALSE, id);
+#endif
+  ExecuteForward(onPull, fwReturn, id, entity, minDist);
+}
+
 resetEntities() {
+#if defined DEBUG_RESET
+  logd("Resetting entities...");
+#endif
   for (new entity; (entity = cs_find_ent_by_class(entity, BB_OBJECT)) != 0;) {
     reset(entity);
   }
+
+  bb_onResetAll();
 }
 
 bool: reset(entity) {
@@ -274,6 +392,7 @@ bool: reset(entity) {
   entity_set_size(entity, fOrigin1, fOrigin2);
 #endif
 #endif
+  bb_onReset(entity);
   return true;
 }
 
@@ -283,12 +402,12 @@ grab(id, entity, &Float: distance = 0.0) {
   }
 
 #if defined DEBUG_GRABBING
-  LoggerLogDebug("%N initiating grab on %d", id, entity);
+  logd("%N initiating grab on %d", id, entity);
 #endif
   new const ownedEnt = pState[id][OwnedEnt];
   if (ownedEnt == entity) {
 #if defined DEBUG_GRABBING
-  LoggerLogDebug("%N has already grabbed %d", id, entity);
+  logd("%N has already grabbed %d", id, entity);
 #endif
     return;
   } else if (ownedEnt) {
@@ -296,22 +415,12 @@ grab(id, entity, &Float: distance = 0.0) {
     return;
   }
 
-  new adminFlags = get_user_flags(id);
-  if (zm_isUserZombie(id) && !(adminFlags & FLAGS_IGNORE_TEAM)) {
-#if defined DEBUG_GRABBING
-    LoggerLogDebug("%N is a zombie without grab override privileges", id);
-#endif
-    return;
-  /*} else if (bb_getGameState() != BB_STATE_BUILDING && !(adminFlags & FLAGS_IGNORE_STATE)) {
-    client_print(id, print_center, "%l", "NOT_BUILD_STATE");
-    return;*/
-  }
-
-  fwReturn = zm_onBeforeGrabbed(id, entity);
+  fwReturn = bb_onBeforeGrabbed(id, entity);
   if (fwReturn == PLUGIN_HANDLED) {
-#if defined DEBUG_GRABBING
-    LoggerLogDebug("%N's grab was blocked by another extension", id);
+#if defined DEBUG_GRABBING || defined DEBUG_BLOCKED
+    logd("%N's grab was blocked by another extension: \"%s\"", id, blockedReason);
 #endif
+    bb_onGrabBlocked(id, entity, blockedReason);
     return;
   }
 
@@ -323,7 +432,7 @@ grab(id, entity, &Float: distance = 0.0) {
   if (distance < fEntResetDist) {
     distance = fEntResetDist;
 #if defined DEBUG_GRABBING
-    LoggerLogDebug("%N's entity distance reset to %.0f", id, distance);
+    logd("%N's entity distance reset to %.0f", id, distance);
 #endif
   }
   
@@ -333,7 +442,7 @@ grab(id, entity, &Float: distance = 0.0) {
   SetEntMover(entity, id);
   pState[id][OwnedEnt] = entity;
   
-  zm_onGrabbed(id, entity);
+  bb_onGrabbed(id, entity);
 }
 
 bool: drop(id) {
@@ -343,7 +452,7 @@ bool: drop(id) {
   }
 
 #if defined DEBUG_GRABBING
-  LoggerLogDebug("Forcing %N to drop %d", id, entity);
+  logd("Forcing %N to drop %d", id, entity);
 #endif
   
   UnmovingEnt(entity);
@@ -351,7 +460,7 @@ bool: drop(id) {
   SetLastMover(entity, id);
   pState[id][OwnedEnt] = 0;
 
-  zm_onDropped(id, entity);
+  bb_onDropped(id, entity);
   return true;
 }
 
@@ -366,7 +475,7 @@ public onCmdStart(id, uc, randseet) {
   new const bool: isToggleGrabEnabled = (pFlags[id] & PFLAG_TOGGLE_GRAB) == PFLAG_TOGGLE_GRAB;
   if ((buttons & IN_USE) && !(oldbuttons & IN_USE)) {
 #if defined DEBUG_CMDSTART
-    LoggerLogDebug("%N pressed IN_USE", id);
+    logd("%N pressed IN_USE", id);
 #endif
     if (isToggleGrabEnabled || !alreadyGrabbed) {
       new entity, body, Float: distance;
@@ -378,7 +487,7 @@ public onCmdStart(id, uc, randseet) {
   } else if ((oldbuttons & IN_USE) && !(buttons & IN_USE)
       && alreadyGrabbed && !isToggleGrabEnabled) {
 #if defined DEBUG_CMDSTART
-    LoggerLogDebug("%N released IN_USE", id);
+    logd("%N released IN_USE", id);
 #endif
     drop(id);
     return FMRES_IGNORED;
@@ -423,11 +532,9 @@ public onPlayerPreThink(id) {
     pState[id][EntDist] += pushPull;
     if (pState[id][EntDist] > fMaxEntDist) {
       pState[id][EntDist] = fMaxEntDist;
-#if !defined DEBUG_PUSHPULL
-      client_print(id, print_center, "%l", "PUSHED_MAX_DIST");
+      bb_onPush(id, entity, true);
     } else {
-      client_print(id, print_center, "%l", "PUSHING");
-#endif
+      bb_onPush(id, entity, false);
     }
     
 #if defined DEBUG_PUSHPULL
@@ -437,12 +544,9 @@ public onPlayerPreThink(id) {
     pState[id][EntDist] -= pushPull;
     if (pState[id][EntDist] < fMinEntDist) {
       pState[id][EntDist] = fMinEntDist;
-#if !defined DEBUG_PUSHPULL
-      client_print(id, print_center, "%l", "PUSHED_MIN_DIST");
+      bb_onPull(id, entity, true);
     } else {
-      client_print(id, print_center, "%l", "PULLING");
-      client_print(id, print_center, "%.0f", pState[id][EntDist]);
-#endif
+      bb_onPull(id, entity, false);
     }
     
 #if defined DEBUG_PUSHPULL
@@ -476,11 +580,11 @@ public onPlayerPreThink(id) {
     entity_get_vector(entity, EV_VEC_mins, fOrigin2);
     entity_get_vector(entity, EV_VEC_maxs, fOrigin3);
     if (XS_FLEQ(fOrigin1[1], 0.0) || XS_FLEQ(fOrigin1[1], 180.0)) {
-        swap(fOrigin2, 1, 2);
-        swap(fOrigin3, 1, 2);
+      swap(fOrigin2, 1, 2);
+      swap(fOrigin3, 1, 2);
     } else {
-        swap(fOrigin2, 0, 2);
-        swap(fOrigin3, 0, 2);
+      swap(fOrigin2, 0, 2);
+      swap(fOrigin3, 0, 2);
     }
 
     entity_set_size(entity, fOrigin2, fOrigin3);
@@ -509,4 +613,84 @@ stock swap(Float: array[], i, j) {
 	temp = array[i];
 	array[i] = array[j];
 	array[j] = temp;
+}
+
+public onAddToFullPack(es, e, entity, id, flags, player, set) {
+  pState[id][PSet] = set;
+  return FMRES_IGNORED;
+}
+
+/*******************************************************************************
+ * Natives
+ ******************************************************************************/
+
+//native bool: bb_reset(entity);
+public bool: native_reset(plugin, numParams) {
+#if defined DEBUG_NATIVES
+  if (!numParamsEqual(1, numParams)) {
+    return;
+  }
+#endif
+
+  new const entity = get_param(1);
+  return reset(entity);
+}
+
+//native bb_resetAlls();
+public native_resetAll(plugin, numParams) {
+#if defined DEBUG_NATIVES
+  if (!numParamsEqual(0, numParams)) {
+    return;
+  }
+#endif
+	
+  resetEntities();
+}
+
+//native bool: bb_drop(id);
+public bool: native_drop(plugin, numParams) {
+#if defined DEBUG_NATIVES
+  if (!numParamsEqual(1, numParams)) {
+    return false;
+  }
+#endif
+
+  new const id = get_param(1);
+  if (!isValidId(id)) {
+    ThrowIllegalArgumentException("Invalid player id specified: %d", id);
+    return false;
+  }
+
+  return drop(id);
+}
+
+//native bool: bb_isInPlayerPVS(id, entity);
+public bool: native_isInPlayerPVS(plugin, numParams) {
+#if defined DEBUG_NATIVES
+  if (!numParamsEqual(2, numParams)) {
+    return false;
+  }
+#endif
+
+  new const id = get_param(1);
+  if (!isValidId(id)) {
+    ThrowIllegalArgumentException("Invalid player id specified: %d", id);
+    return false;
+  }
+
+  new const entity = get_param(2);
+  return bool:(engfunc(EngFunc_CheckVisibility, entity, pState[id][PSet]));
+}
+
+//native bb_setBlockedReason(const reason[]);
+public native_setBlockedReason(plugin, numParams) {
+#if defined DEBUG_NATIVES
+  if (!numParamsEqual(1, numParams)) {}
+#endif
+
+  new len = get_string(1, blockedReason, charsmax(blockedReason));
+  blockedReason[len] = EOS;
+#if defined DEBUG_BLOCKED
+  logd("blockedReason=%s", blockedReason);
+#endif
 }

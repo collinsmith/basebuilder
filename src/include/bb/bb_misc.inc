@@ -6,7 +6,7 @@
 #include "include/zm/zm_debug.inc"
 
 #include "include/stocks/misc_stocks.inc"
-#include "include/stocks/string_stocks.inc"
+#include "include/stocks/string_utils.inc"
 
 #include "include/bb/bb_i18n.inc"
 
@@ -23,7 +23,6 @@
  * @param callback The name of the function to call when the command is executed
  * @param desc     A brief description of the command
  * @param access   The required privileges to execute the command
- * @param logger   The logger which to log the event to
  * 
  * @return The idenfitifier assigned to the command by {@link #register_concmd},
  *         or {@code 0} on failure. If multiple aliases are registered at once,
@@ -34,14 +33,13 @@
  *         empty.
  */
 stock bb_registerConCmd(const command[], const callback[], const desc[],
-                        access = ADMIN_CFG, Logger: logger = Invalid_Logger) {
-  new bb[8];
-  formatex(bb, charsmax(bb), "%L", LANG_SERVER, BB_NAME_SHORT);
+                        const access = ADMIN_CFG) {
+  new bb[8], lang = LANG_SERVER;
+  LookupLangKey(bb, charsmax(bb), BB_NAME_SHORT, lang);
   strtolower(bb);
 #if defined DEBUG_COMMANDS
-  return registerConCmd(bb, command, callback, desc, access, logger);
+  return registerConCmd(bb, command, callback, desc, access, true);
 #else
-  #pragma unused logger
-  return registerConCmd(bb, command, callback, desc, access, Invalid_Logger);
+  return registerConCmd(bb, command, callback, desc, access, false);
 #endif
 }
