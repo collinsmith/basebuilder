@@ -291,7 +291,7 @@ public bool: native_registerColor(plugin, numParams) {
 
   new Trie: oldColor;
   keyExists = TrieGetCell(colors, key, oldColor);
-  zm_parseResource(key, value, charsmax(value));
+  parseResource(key, value, charsmax(value));
 
   new const bool: replace = get_param(2);
   if (keyExists) {
