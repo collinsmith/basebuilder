@@ -17,6 +17,7 @@
 #include "include/zm/zm_teams.inc"
 
 #include "include/bb/basebuilder.inc"
+#include "include/bb/bb_colors.inc"
 #include "include/bb/bb_guns_menu.inc"
 #include "include/bb/bb_zones.inc"
 #include "include/bb/bb_director_consts.inc"
@@ -441,8 +442,18 @@ public zm_onClassSelected(const id, const Class: class, const name[]) {
   zm_setUserClass(id, class, pApplyImmediate[id]);
 }
 
+public bb_onColorChanged(const id, const Color: color, const name[]) {
+  zm_printColor(id, "Color changed to %s", name);
+}
+
 public zm_onCured(const id, const curor) {
   zm_setUserClass(id, Invalid_Trie, true);
+}
+
+public zm_onAfterCured(const id, const curor) {
+  new const Array: colors = bb_getColors();
+  new const Trie: color = ArrayGetCell(colors, random(ArraySize(colors)));
+  bb_setUserColor(id, color);
 }
 
 public bb_onBeforeGrabbed(const id, const entity) {
@@ -475,7 +486,7 @@ public bb_onBeforeGrabbed(const id, const entity) {
 #endif
       new reason[128], lang = id;
       LookupLangKey(reason, charsmax(reason), "CANNOT_BUILD_NOW", lang);
-      bb_setBlockedReason(reason);
+      bb_setBlockGrabReason(reason);
       return PLUGIN_HANDLED;
 #if defined FLAGS_GRAB_IGNORE_STATE
     }

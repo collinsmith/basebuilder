@@ -25,6 +25,8 @@ bb_builder_maxGrabDistance=Maximum distance you can push an object
 bb_builder_grabResetDistance=The distance to set a block to if grabbed too close
 bb_builder_pushPullRate=How slow/fast an object can be pushed or pulled in units/sec
 
+bb_maxLocks=The maximum number of objects a single user can hold at once
+
 PUSHING=pushing...
 PULLING=pulling...
 
@@ -38,6 +40,8 @@ CANNOT_BUILD_OBJECT_OWNED=Cannot move objects claimed by other players!
 CANNOT_PAUSE=Timer cannot be paused right now!
 CANNOT_FORCE_PREPARATION=Cannot skip to preparation phase right now!
 CANNOT_FORCE_RELEASE=Zombies cannot be released right now!
+CANNOT_LOCK_MORE_THAN_X=You cannot lock more than %d objects!
+CANNOT_MOVE_LOCKED_OBJECTS=You cannot move locked objects!
 
 TIMER_PAUSED=The timer has been paused
 TIMER_RESUMED=The timer has resumed

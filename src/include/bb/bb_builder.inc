@@ -3,8 +3,9 @@
 #endif
 #define _bb_builder_included
 
-#include "include/bb/bb_builder_consts.inc"
-#include "include/bb/bb_builder_macros.inc"
+#include "include/bb/bb_entity_consts.inc"
+
+#pragma reqlib bb_builder
 
 forward bb_onBeforeGrabbed(const id, const entity);
 forward bb_onGrabBlocked(const id, const entity, const reason[]);
@@ -19,7 +20,7 @@ native bool: bb_reset(const entity);
 native bb_resetAll();
 native bool: bb_drop(const id);
 native bool: bb_isInPlayerPVS(const id, const entity);
-native bb_setBlockedReason(const reason[]);
+native bb_setBlockGrabReason(const reason[]);
 native bb_getGrabbedObject(const id);
 
 stock bool: bb_isUserGrabbing(const id) {

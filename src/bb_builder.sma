@@ -11,8 +11,6 @@
 
 #include "include/zm/zm_teams.inc"
 
-#include "include/bb/bb_builder_consts.inc"
-#include "include/bb/bb_builder_macros.inc"
 #include "include/bb/basebuilder.inc"
 
 #if defined ZM_COMPILE_FOR_DEBUG
@@ -89,7 +87,7 @@ public plugin_natives() {
   register_native("bb_reset", "native_reset", 0);
   register_native("bb_drop", "native_drop", 0);
   register_native("bb_isInPlayerPVS", "native_isInPlayerPVS", 0);
-  register_native("bb_setBlockedReason", "native_setBlockedReason", 0);
+  register_native("bb_setBlockGrabReason", "native_setBlockGrabReason", 0);
   register_native("bb_getGrabbedObject", "native_getGrabbedObject", 0);
 }
 
@@ -123,18 +121,18 @@ stock getBuildId(buildId[], len) {
 }
 
 #define CREATE_CVAR(%1,%2,%3,%4,%5) \
-  name = %1;\
-  LookupLangKey(desc, charsmax(desc), name, lang);\
-  pcvar = create_cvar(name, #%4, _, desc,\
-      .has_min = true, .min_val = %2, .has_max = true, .max_val = %3);\
-  bind_pcvar_num(pcvar, %5);
+    name = %1;\
+    LookupLangKey(desc, charsmax(desc), name, lang);\
+    pcvar = create_cvar(name, #%4, _, desc,\
+        .has_min = true, .min_val = %2, .has_max = true, .max_val = %3);\
+    bind_pcvar_num(pcvar, %5);
 
 #define CREATE_CVAR_F(%1,%2,%3,%4,%5) \
-  name = %1;\
-  LookupLangKey(desc, charsmax(desc), name, lang);\
-  pcvar = create_cvar(name, #%4, _, desc,\
-      .has_min = true, .min_val = %2, .has_max = true, .max_val = %3);\
-  bind_pcvar_float(pcvar, %5);
+    name = %1;\
+    LookupLangKey(desc, charsmax(desc), name, lang);\
+    pcvar = create_cvar(name, #%4, _, desc,\
+        .has_min = true, .min_val = %2, .has_max = true, .max_val = %3);\
+    bind_pcvar_float(pcvar, %5);
 
 createCvars() {
   new lang = LANG_SERVER;
@@ -178,23 +176,23 @@ prepareEntities() {
     //}
 
     if (equal(target, BB_OBJECT_RAW, 10)) {
-      SetMoveType(entity, read_flags(target[10]));
+      SetEntMoveType(entity, read_flags(target[10]));
     } else {
       // TODO: Make sure this change is compatible with old maps
-      SetMoveType(entity, MOVABLE);
-      len = bb_object_len + get_flags(GetMoveType(entity), bb_object_[bb_object_len], charsmax(bb_object_)-bb_object_len);
+      SetEntMoveType(entity, MOVABLE);
+      len = bb_object_len + get_flags(GetEntMoveType(entity), bb_object_[bb_object_len], charsmax(bb_object_)-bb_object_len);
       bb_object_[len] = EOS;
       entity_set_string(entity, EV_SZ_targetname, bb_object_);
     }
 
-    if (GetMoveType(entity) == UNMOVABLE) {
+    if (!IsEntMovable(entity)) {
       continue;
     }
 
     cs_set_ent_class(entity, BB_OBJECT);
 
     entity_get_vector(entity, EV_VEC_origin, fOrigin3);
-    EntSetOffset(entity, fOrigin3);
+    SetEntOffset(entity, fOrigin3);
 
 #if defined ENABLE_ROTATION_YAW && defined ENABLE_ROTATION_ROLL
     entity_get_vector(entity, EV_VEC_mins, fOrigin1);
@@ -374,14 +372,13 @@ resetEntities() {
 }
 
 bool: reset(entity) {
-  UnmovingEnt(entity);
-  UnlockBlock(entity);
-  UnsetEntMover(entity);
-  UnsetLastMover(entity);
+  ResetEntMoving(entity);
+  ResetEntMover(entity);
+  ResetEntLastMover(entity);
 
   entity_set_int(entity, EV_INT_rendermode, kRenderNormal);
 
-  EntGetOffset(entity, fOrigin1);
+  GetEntOffset(entity, fOrigin1);
   entity_set_origin(entity, fOrigin1);
 
 #if defined ENABLE_ROTATION_YAW
@@ -398,7 +395,7 @@ bool: reset(entity) {
 }
 
 grab(id, entity, &Float: distance = 0.0) {
-  if (!is_valid_ent(entity) || GetMoveType(entity) == UNMOVABLE || IsMovingEnt(entity)) {
+  if (!is_valid_ent(entity) || GetEntMoveType(entity) == UNMOVABLE || IsEntMoving(entity)) {
     return;
   }
 
@@ -439,7 +436,7 @@ grab(id, entity, &Float: distance = 0.0) {
   
   pState[id][EntDist] = distance;
 
-  MovingEnt(entity);
+  SetEntMoving(entity);
   SetEntMover(entity, id);
   pState[id][OwnedEnt] = entity;
   
@@ -456,9 +453,9 @@ bool: drop(id) {
   logd("Forcing %N to drop %d", id, entity);
 #endif
   
-  UnmovingEnt(entity);
-  UnsetEntMover(entity);
-  SetLastMover(entity, id);
+  ResetEntMoving(entity);
+  ResetEntMover(entity);
+  SetEntLastMover(entity, id);
   pState[id][OwnedEnt] = 0;
 
   bb_onDropped(id, entity);
@@ -555,7 +552,7 @@ public onPlayerPreThink(id) {
 #if defined ENABLE_ROTATION_YAW
   } else if (RotationMode
       && (buttons & IN_RELOAD) && !(oldbuttons & IN_RELOAD)
-      && (GetMoveType(entity) & ROTATABLE)) {
+      && (GetEntMoveType(entity) & ROTATABLE)) {
     entity_get_vector(entity, EV_VEC_angles, fOrigin1);
     fOrigin1[1] += 90.0;
     entity_set_vector(entity, EV_VEC_angles, fOrigin1);
@@ -682,8 +679,8 @@ public bool: native_isInPlayerPVS(plugin, numParams) {
   return bool:(engfunc(EngFunc_CheckVisibility, entity, pState[id][PSet]));
 }
 
-//native bb_setBlockedReason(const reason[]);
-public native_setBlockedReason(plugin, numParams) {
+//native bb_setBlockGrabReason(const reason[]);
+public native_setBlockGrabReason(plugin, numParams) {
 #if defined DEBUG_NATIVES
   if (!numParamsEqual(1, numParams)) {}
 #endif

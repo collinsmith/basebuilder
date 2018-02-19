@@ -8,9 +8,8 @@
 #include "include/zm/zm_classes.inc"
 #include "include/zm/zm_teams.inc"
 
-#include "include/bb/bb_builder.inc"
-#include "include/bb/bb_director.inc"
 #include "include/bb/basebuilder.inc"
+#include "include/bb/bb_locker.inc"
 
 #if defined ZM_COMPILE_FOR_DEBUG
   //#define DEBUG_CHANNELS
@@ -314,6 +313,17 @@ public bb_onGrabBlocked(const id, const entity, const reason[]) {
 
   set_hudmessage(246, 100, 175, -1.0, 0.40, 0, 0.0, 5.0, 0.0, 0.0);
   ShowSyncHudMsg(id, respawnSync, reason);
+  zm_printColor(id, reason);
+}
+
+public bb_onLockBlocked(const id, const entity, const reason[]) {
+  if (isStringEmpty(reason)) {
+    return;
+  }
+
+  set_hudmessage(246, 100, 175, -1.0, 0.40, 0, 0.0, 5.0, 0.0, 0.0);
+  ShowSyncHudMsg(id, respawnSync, reason);
+  zm_printColor(id, reason);
 }
 
 public onTraceLine(Float: start[3], Float: end[3], conditions, id, trace) {
@@ -336,17 +346,17 @@ public onTraceLine(Float: start[3], Float: end[3], conditions, id, trace) {
 
   static szFormattedHud[128], len;
   len = 0;
-  if (GetMoveType(ent) != UNMOVABLE) {
-    set_hudmessage(0, 50, 255, -1.0, 0.60, 0, 0.0, 3.0, 0.0, 0.5);
-    claimer = GetBlockClaimer(ent);
+  if (IsEntMovable(ent)) {
+    set_hudmessage(0, 50, 255, -1.0, 0.60, 0, 0.0, 3.0, 0.0, 1.0);
+    claimer = GetEntLocker(ent);
     curMover = GetEntMover(ent);
-    lastMover = GetLastMover(ent);
+    lastMover = GetEntLastMover(ent);
     if (claimer) {
       get_user_name(claimer, szCurMover, 31);
       len += formatex(szFormattedHud[len], 127-len, "%l", "CLAIMED_BY", szCurMover);
     }	
 
-    if (IsBlockLocked(ent)) {
+    if (IsEntLocked(ent)) {
       len += formatex(szFormattedHud[len], 127-len, " & %l", "LOCKED");
     }
 

@@ -6,6 +6,7 @@
 #include "include/stocks/precache_stocks.inc"
 
 #include "include/bb/basebuilder.inc"
+#include "include/bb/bb_locker.inc"
 
 #if defined ZM_COMPILE_FOR_DEBUG
 #else
@@ -31,6 +32,8 @@ static const ZOMBIES_WIN[][] = {
 static const BLOCK_GRAB[] = "bb/block_grab.wav";
 static const BLOCK_DROP[] = "bb/block_drop.wav";
 
+static const BLOCK_LOCK[] = "bb/block_locked.wav";
+
 public zm_onPrecache() {
   precacheSound(PHASE_BUILD);
   precacheSound(PHASE_PREP);
@@ -45,6 +48,7 @@ public zm_onPrecache() {
   }
   precacheSound(BLOCK_GRAB);
   precacheSound(BLOCK_DROP);
+  precacheSound(BLOCK_LOCK);
 }
 
 public zm_onInit() {
@@ -142,4 +146,12 @@ public bb_onGrabbed(const id, const entity) {
 
 public bb_onDropped(const id, const entity) {
   rg_send_audio(id, BLOCK_DROP);
+}
+
+public bb_onLocked(const id, const entity) {
+  rg_send_audio(id, BLOCK_LOCK);
+}
+
+public bb_onUnlocked(const id, const entity) {
+  rg_send_audio(id, BLOCK_LOCK);
 }
