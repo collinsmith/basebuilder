@@ -1,9 +1,7 @@
 #include <amxmodx>
 #include <logger>
 
-// TODO: #include <classloader>
-#pragma reqlib classloader
-native cl_registerClassLoader(const callback[], const extension[], ...);
+#include "include/classloader/classloader.inc"
 
 #include "include/stocks/param_stocks.inc"
 

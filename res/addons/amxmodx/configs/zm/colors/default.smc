@@ -1,0 +1,97 @@
+"@string/RED"
+{
+  color_argb #64C80000
+}
+
+"@string/RED_ORANGE"
+{
+  color_argb #87FF5349
+}
+"@string/ORANGE"
+{
+  color_argb #8CFF7538
+}
+"@string/YELLOW_ORANGE"
+{
+  color_argb #78FFAE42
+}
+"@string/PEACH"
+{
+  color_argb #8CFFCFAB
+}
+"@string/YELLOW"
+{
+  color_argb #7DFCE883
+}
+"@string/LEMON_YELLOW"
+{
+  color_argb #64FEFE22
+}
+"@string/JUNGLE_GREEN"
+{
+  color_argb #7D3BB08F
+}
+"@string/YELLOW_GREEN"
+{
+  color_argb #87C5E384
+}
+"@string/GREEN"
+{
+  color_argb #64009600
+}
+"@string/AQUAMARINE"
+{
+  color_argb #7D78DBE2
+}
+"@string/BABY_BLUE"
+{
+  color_argb #9687CEEB
+}
+"@string/SKY_BLUE"
+{
+  color_argb #5A80DAEB
+}
+"@string/BLUE"
+{
+  color_argb #4B0000FF
+}
+"@string/VIOLET"
+{
+  color_argb #AF926EAE
+}
+"@string/HOT_PINK"
+{
+  color_argb #96FF69B4
+}
+"@string/MAGENTA"
+{
+  color_argb #AFF664AF
+}
+"@string/MAHOGANY"
+{
+  color_argb #8CCD4A4C
+}
+"@string/TAN"
+{
+  color_argb #8CFAA76C
+}
+"@string/LIGHT_BROWN"
+{
+  color_argb #8CEA7E5D
+}
+"@string/BROWN"
+{
+  color_argb #A5B4674D
+}
+"@string/GRAY"
+{
+  color_argb #AF95918C
+}
+"@string/BLACK"
+{
+  color_argb #7D000000
+}
+"@string/WHITE"
+{
+  color_argb #7DFFFFFF
+}

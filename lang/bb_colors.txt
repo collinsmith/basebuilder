@@ -1,0 +1,25 @@
+[en]
+RED=Red
+RED_ORANGE=Red Orange
+ORANGE=Orange
+YELLOW_ORANGE=Yellow Orange
+PEACH=Peach
+YELLOW=Yellow
+LEMON_YELLOW=Lemon Yellow
+JUNGLE_GREEN=Jungle Green
+YELLOW_GREEN=Yellow Green
+GREEN=Green
+AQUAMARINE=Aquamarine
+BABY_BLUE=Baby Blue
+SKY_BLUE=Sky Blue
+BLUE=Blue
+VIOLET=Violet
+HOT_PINK=Hot Pink
+MAGENTA=Magenta
+MAHOGANY=Mahogany
+TAN=Tan
+LIGHT_BROWN=Light Brown
+BROWN=Brown
+GRAY=Gray
+BLACK=Black
+WHITE=White

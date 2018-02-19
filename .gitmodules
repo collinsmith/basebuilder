@@ -10,3 +10,6 @@
 [submodule "src/include/cs_weapon_restrictions"]
 	path = src/include/cs_weapon_restrictions
 	url = https://github.com/collinsmith/cs_weapon_restrictions-inc
+[submodule "src/include/classloader"]
+	path = src/include/classloader
+	url = https://github.com/collinsmith/classloader-inc
