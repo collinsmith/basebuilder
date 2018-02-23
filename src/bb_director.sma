@@ -426,7 +426,7 @@ public zm_onBeforeClassMenuDisplayed(const id, const bool: exitable) {
 
 public zm_onInfected(const id, const infector) {
   // TODO: Configure default class
-  new const Trie: defaultClass = zm_findClass("@string/ZM_CLASS_CLASSIC");
+  new const Trie: defaultClass = zm_findClass("ZM_CLASS_CLASSIC");
   zm_setUserClass(id, defaultClass, true);
   logd("%N class auto set to %d", id, defaultClass);
 }
@@ -443,7 +443,9 @@ public zm_onClassSelected(const id, const Trie: class, const name[]) {
 }
 
 public bb_onColorChanged(const id, const Color: color, const name[]) {
-  zm_printColor(id, "Color changed to %s", name);
+  new text[16];
+  parseResource(name, text, charsmax(text), id);
+  zm_printColor(id, "Color changed to %s", text);
 }
 
 public zm_onCured(const id, const curor) {
