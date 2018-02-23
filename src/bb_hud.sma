@@ -170,7 +170,7 @@ public onHealth(msgid, dest, id) {
   hp = get_msg_arg_int(1);
 
 #if defined DISPLAY_HEALTH_PERCENT
-  new const Class: class = zm_getUserClass(id);
+  new const Trie: class = zm_getUserClass(id);
   if (!class) {
     if(hp > 255 && (hp % 256) == 0) {
       set_msg_arg_int(1, ARG_BYTE, ++hp);
@@ -178,7 +178,7 @@ public onHealth(msgid, dest, id) {
   } else {
     // TODO: assert hasProperty
     static value[8];
-    zm_getClassProperty(class, ZM_CLASS_HEALTH, value, charsmax(value));
+    TrieGetString(class, ZM_CLASS_HEALTH, value, charsmax(value));
     new const Float: health = entity_get_float(id, EV_FL_health);
     new const Float: maxHealth = str_to_float(value);
     new const percent = floatround(health / maxHealth * 100, floatround_ceil);

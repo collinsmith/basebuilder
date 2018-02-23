@@ -62,13 +62,13 @@ public bb_onTouchZombieSpawn(const id, const entity) {
     return;
   }
 
-  new const Class: class = zm_getUserClass(id);
+  new const Trie: class = zm_getUserClass(id);
   if (class == Invalid_Trie) {
     return;
   }
 
   static value[8];
-  new const bool: hasProperty = zm_getClassProperty(class, ZM_CLASS_HEALTH, value, charsmax(value));
+  new const bool: hasProperty = TrieGetString(class, ZM_CLASS_HEALTH, value, charsmax(value));
   if (!hasProperty) {
     return;
   }

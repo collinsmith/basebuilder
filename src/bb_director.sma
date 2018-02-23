@@ -426,7 +426,7 @@ public zm_onBeforeClassMenuDisplayed(const id, const bool: exitable) {
 
 public zm_onInfected(const id, const infector) {
   // TODO: Configure default class
-  new const Class: defaultClass = zm_findClass("@string/ZM_CLASS_CLASSIC");
+  new const Trie: defaultClass = zm_findClass("@string/ZM_CLASS_CLASSIC");
   zm_setUserClass(id, defaultClass, true);
   logd("%N class auto set to %d", id, defaultClass);
 }
@@ -438,7 +438,7 @@ public zm_onAfterApply(const id, const bool: first) {
   }
 }
 
-public zm_onClassSelected(const id, const Class: class, const name[]) {
+public zm_onClassSelected(const id, const Trie: class, const name[]) {
   zm_setUserClass(id, class, pApplyImmediate[id]);
 }
 

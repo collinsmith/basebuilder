@@ -7,6 +7,8 @@
 #include "include/bb/basebuilder.inc"
 #include "include/bb/bb_locker.inc"
 
+#include "include/zm/zm_teams.inc"
+
 #if defined ZM_COMPILE_FOR_DEBUG
   //#define DEBUG_CMDSTART
   #define DEBUG_LOCKING
@@ -77,6 +79,8 @@ createCvars() {
 public onCmdStart(id, uc, randseed) {
   if (!is_user_alive(id)) {
     return FMRES_IGNORED;
+  } else if (zm_isUserZombie(id)) {
+    return FMRES_IGNORED;
   } else if (bb_getGameState() != BuildPhase) {
     return FMRES_IGNORED;
   }
@@ -89,7 +93,10 @@ public onCmdStart(id, uc, randseed) {
 #endif
     new entity, body;
     get_user_aiming(id, entity, body, floatround(fMaxEntDist));
-    bb_toggleLock(entity, id);
+    if (is_valid_ent(entity)) {
+      bb_toggleLock(entity, id);
+    }
+    
     return FMRES_IGNORED;
   }
 

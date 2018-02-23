@@ -38,8 +38,8 @@
 
 static Trie: colors;
 
-static key[class_prop_key_length + 1];
-static value[class_prop_value_length + 1];
+static key[32];
+static value[256];
 
 static Color: pColor[MAX_PLAYERS + 1];
 
@@ -469,18 +469,18 @@ public Trie: native_setUserColor(plugin, numParams) {
 #define newColorName key
 #if defined INVALID_TRIE_WILL_RESET_COLOR
   if (color) {
-    zm_getClassProperty(color, BB_COLOR_NAME, newColorName, charsmax(newColorName));
+    TrieGetString(color, BB_COLOR_NAME, newColorName, charsmax(newColorName));
   } else {
     copy(newColorName, charsmax(newColorName), NULL);
   }
 #else
-  zm_getClassProperty(color, BB_COLOR_NAME, newColorName, charsmax(newColorName));
+  TrieGetString(color, BB_COLOR_NAME, newColorName, charsmax(newColorName));
 #endif
 
 #if defined DEBUG_FORWARDS || defined DEGUG_COLORS
   new oldColorName[32];
   if (oldColor) {
-    zm_getClassProperty(oldColor, BB_COLOR_NAME, oldColorName, charsmax(oldColorName));
+    TrieGetString(oldColor, BB_COLOR_NAME, oldColorName, charsmax(oldColorName));
   } else {
     copy(oldColorName, charsmax(oldColorName), NULL);
   }
