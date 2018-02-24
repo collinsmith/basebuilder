@@ -9,8 +9,8 @@
 #include "include/bb/bb_colors.inc"
 
 #if defined ZM_COMPILE_FOR_DEBUG
-  //#define DEBUG_LOADER
-  //#define DEBUG_PARSER
+  #define DEBUG_LOADER
+  #define DEBUG_PARSER
 #else
   //#define DEBUG_LOADER
   //#define DEBUG_PARSER
@@ -103,15 +103,22 @@ public SMCResult: onEndSection(SMCParser: handle) {
   new value[32];
   if (TrieGetString(color, BB_COLOR_ARGB, value, charsmax(value))) {
     new const argb = parseColor(value);
+    logd("argb=%X", argb); 
     
     new Float: rgb[3];
     rgb[0] = r(argb);
     rgb[1] = g(argb);
     rgb[2] = b(argb);
     TrieSetArray(color, BB_COLOR_RGB, rgb, sizeof rgb);
+#if defined DEBUG_PARSER
+    logd("rgb={%.0f,%.0f,%.0f}", rgb[0], rgb[1], rgb[2]); 
+#endif
     
     new Float: alpha = a(argb);
     TrieSetCell(color, BB_COLOR_ALPHA, alpha);
+#if defined DEBUG_PARSER
+    logd("alpha=%.0f", alpha); 
+#endif
   } else {
   // TODO: Support for rgb/alpha too, argb takes precedence and overrides settings
     loge("Unknown color: %s", name);
@@ -124,10 +131,30 @@ public SMCResult: onEndSection(SMCParser: handle) {
   return SMCParse_Continue;
 }
 
+strtolong(const str[], &len) {
+  new num = 0;
+  for (len = 0; str[len] != EOS; len++) {
+    new c = str[len];
+    if ('a' <= c <= 'f') {
+      c = c - 'a' + 10;
+      num = (num << 4) | c;
+    } else if ('A' <= c <= 'F') {
+      c = c - 'A' + 10;
+      num = (num << 4) | c;
+    } else if ('0' <= c <= '9') {
+      c -= '0';
+      num = (num << 4) | c;
+    }
+  }
+  
+  return num;
+}
+
 parseColor(str[]) {
   if (str[0] == '#') {
     new len;
-    new color = strtol(str[1], len, .base = 16);
+    new color = strtolong(str[1], len);
+    //new color = strtol(str[1], len, .base = 16);
     if (len == 6) {
       color |= 0xFF000000;
     } else if (len != 8) {
