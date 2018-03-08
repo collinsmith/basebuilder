@@ -15,10 +15,10 @@
 #include "include/zm/zm_classes.inc"
 #include "include/zm/zm_class_menu.inc"
 #include "include/zm/zm_teams.inc"
+#include "include/zm/zm_gun_menu.inc"
 
 #include "include/bb/basebuilder.inc"
 #include "include/bb/bb_colors.inc"
-#include "include/bb/bb_guns_menu.inc"
 #include "include/bb/bb_zones.inc"
 #include "include/bb/bb_director_consts.inc"
 
@@ -67,6 +67,9 @@ static respawnTime[MAX_PLAYERS + 1] = { 0, ... };
 
 static ZM_Team: pActualTeam[MAX_PLAYERS + 1] = { ZM_TEAM_UNASSIGNED, ... };
 static bool: pApplyImmediate[MAX_PLAYERS + 1] = { false, ... };
+
+static const SECONDARY_GUNS = CSI_ALL_PISTOLS;
+static const PRIMARY_GUNS = CSI_ALL_SHOTGUNS | CSI_ALL_SMGS | CSI_ALL_RIFLES | CSI_ALL_SNIPERRIFLES | CSI_ALL_MACHINEGUNS;
 
 public zm_onInit() {
   LoadLogger(bb_getPluginId());
@@ -294,7 +297,7 @@ public zm_onSpawn(const id) {
   if (zm_isUserHuman(id)) {
     if (gameState == PrepPhase) {
       cs_resetWeaponRestrictions(id);
-      bb_showGunsMenu(id);
+      zm_showGunMenu(id, PRIMARY_GUNS, SECONDARY_GUNS);
     } else {
       cs_setWeaponRestrictions(id, CSI_KNIFE, CSI_KNIFE, false);
     }
